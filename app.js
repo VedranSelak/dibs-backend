@@ -25,8 +25,8 @@ app.use(helmet());
 app.use(cors());
 app.use(xss());
 
-app.use("/", indexRouter);
-app.use("/users", usersRouter);
+app.use("/api/v1", indexRouter);
+app.use("/api/v1/users", usersRouter);
 
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
