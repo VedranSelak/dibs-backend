@@ -10,6 +10,7 @@ const cors = require("cors");
 const xss = require("xss-clean");
 
 const indexRouter = require("./routes/index");
+
 const usersRouter = require("./routes/users");
 
 const app = express();
@@ -19,7 +20,7 @@ const errorHandlerMiddleware = require("./middleware/errorHandler");
 
 app.use(logger("dev"));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
 app.use(cors());
 app.use(xss());
