@@ -16,11 +16,9 @@ User.getAll = (result) => {
   let query = "SELECT * FROM users";
   sql.query(query, (err, res) => {
     if (err) {
-      console.log("error: ", err);
       result(null, err);
       return;
     }
-    console.log("users: ", res);
     result(null, res);
   });
 };
@@ -28,11 +26,9 @@ User.getAll = (result) => {
 User.create = (newUser, result) => {
   sql.query("INSERT INTO users SET ?", newUser, (err, res) => {
     if (err) {
-      console.log("error: ", err);
       result(err, null);
       return;
     }
-    console.log("User registerd: ", { id: res.insertId, ...newUser });
     result(null, { id: res.insertId, type: newUser.type });
   });
 };
@@ -43,7 +39,6 @@ User.login = (credentials, result) => {
     credentials.email,
     async (err, res) => {
       if (err) {
-        console.log("error: ", err);
         result(err, null);
         return;
       }

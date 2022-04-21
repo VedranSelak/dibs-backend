@@ -35,24 +35,18 @@ const register = async (req, res) => {
   });
 };
 
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    throw new BadRequest("Please provide all the required fields");
+    next(new BadRequest("Please provide all the required fields"));
+    return;
   }
 
   User.login({ email, password }, (err, data) => {
     if (err) {
-      if (err instanceof CustomAPIError) {
-        res.status(err.statusCode).json({ msg: err.message });
-        return;
-      } else {
-        res
-          .status(StatusCodes.INTERNAL_SERVER_ERROR)
-          .json({ msg: err.message });
-        return;
-      }
+      next(err);
+      return;
     }
 
     const accessToken = jwt.sign(data, process.env.ACCESS_TOKEN_SECRET, {
