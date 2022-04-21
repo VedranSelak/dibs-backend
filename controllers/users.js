@@ -1,7 +1,9 @@
 const User = require("../models/users");
-const { StatusCodes } = require("http-status-codes");
+const jwt = require("jsonwebtoken");
+const { BadRequest } = require("../errors");
 
 const getAllUsers = (req, res) => {
+  console.log(req.user);
   User.getAll((err, data) => {
     if (err) {
       res.status(500).send({
@@ -14,13 +16,11 @@ const getAllUsers = (req, res) => {
 };
 
 const registerUser = (req, res) => {
-  if (!req.body) {
-    res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ message: "Please provide all required fields" });
-  }
-
   const { email, first_name, last_name, password, status, type } = req.body;
+
+  if (!email || !first_name || !last_name || !password || !status || !type) {
+    throw new BadRequest("Please provide all the required fields");
+  }
 
   const user = new User({
     email: email,
@@ -33,11 +33,10 @@ const registerUser = (req, res) => {
 
   User.create(user, (err, data) => {
     if (err) {
-      res.status(500).send({
-        message: err.message || "Error occured during registration",
-      });
+      throw err;
     } else {
-      res.status(201).json(data);
+      const accessToken = jwt.sign(data, process.env.ACCESS_TOKEN_SECRET);
+      res.status(201).json({ accessToken });
     }
   });
 };

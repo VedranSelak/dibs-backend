@@ -30,7 +30,7 @@ User.create = (newUser, result) => {
       return;
     }
     console.log("User registerd: ", { id: res.insertId, ...newUser });
-    result(null, { id: res.insertId, ...newUser });
+    result(null, { id: res.insertId, type: newUser.type });
   });
 };
 
