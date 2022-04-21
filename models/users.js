@@ -41,7 +41,7 @@ User.login = (credentials, result) => {
   sql.query(
     "SELECT id, password, type FROM users WHERE email = ?",
     credentials.email,
-    (err, res) => {
+    async (err, res) => {
       if (err) {
         console.log("error: ", err);
         result(err, null);
@@ -56,21 +56,17 @@ User.login = (credentials, result) => {
       }
 
       const user = res[0];
-      console.log("USER:");
-      console.log(user);
 
-      bcrypt.compare(credentials.password, user.password, (err, res) => {
-        if (err) {
-          result(err, null);
-          return;
-        }
-        if (!res) {
-          result(new Unauthenticated("Incorrect password"), null);
-          return;
-        }
+      const isPasswordValid = await bcrypt.compare(
+        credentials.password,
+        user.password
+      );
+      if (isPasswordValid) {
         const { id, type } = user;
         result(null, { id, type });
-      });
+      } else {
+        result(new Unauthenticated("Invalid password"), null);
+      }
     }
   );
 };
