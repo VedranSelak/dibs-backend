@@ -12,6 +12,10 @@ module.exports = {
       ownerId: {
         type: Sequelize.INTEGER(11),
         allowNull: false,
+        references: {
+          model: "users",
+          key: "id",
+        },
       },
       name: {
         type: Sequelize.STRING(255),

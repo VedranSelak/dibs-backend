@@ -28,6 +28,14 @@ db.sequelize = sequelize;
 
 db.users = require("../models/User")(sequelize, DataTypes);
 db.publicListings = require("../models/PublicListing")(sequelize, DataTypes);
+db.users.hasOne(db.publicListings, {
+  as: "public_listings",
+  foreignKey: "ownerId",
+});
+db.publicListings.belongsTo(db.users, {
+  as: "user",
+  foreignKey: "ownerId",
+});
 
 db.sequelize.sync({ force: false }).then(() => {
   console.log("Re-sync done!");
