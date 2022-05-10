@@ -29,6 +29,7 @@ module.exports = (sequelize, DataTypes) => {
     status: {
       type: DataTypes.STRING(45),
       allowNull: false,
+      defaultValue: "pending",
     },
     parentId: {
       type: DataTypes.INTEGER(11),
