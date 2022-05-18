@@ -3,10 +3,12 @@ const db = require("../db/connection");
 const { Unauthenticated, BadRequest } = require("../errors");
 
 const PublicListing = db.publicListings;
+const Image = db.images;
+const Spot = db.spots;
 
 const getAllListings = async (req, res) => {
   const listings = await PublicListing.findAll({});
-  res.status(StatusCodes.OK).json({ listings });
+  res.status(StatusCodes.OK).json(listings);
 };
 
 const createPublicListing = async (req, res) => {
@@ -14,12 +16,28 @@ const createPublicListing = async (req, res) => {
   if (user.type !== "owner") {
     throw new Unauthenticated("Your account is not an owner account");
   }
-  const { name, shortDescription, detailedDescription, type, parentId } =
-    req.body;
+  const {
+    name,
+    shortDescription,
+    detailedDescription,
+    type,
+    images,
+    spots,
+    parentId,
+  } = req.body;
 
-  if (!name || !shortDescription || !detailedDescription || !type) {
+  if (
+    !name ||
+    !shortDescription ||
+    !detailedDescription ||
+    !type ||
+    !images ||
+    !spots
+  ) {
     throw new BadRequest("Please provide all the fields");
   }
+
+  const t = await db.sequelize.transaction();
 
   const newListing = {
     ownerId: user.id,
@@ -30,9 +48,33 @@ const createPublicListing = async (req, res) => {
     parentId: typeof parentId === "undefined" ? null : parentId,
   };
 
-  console.log(newListing);
-  const listing = await PublicListing.create(newListing);
-  res.status(StatusCodes.CREATED).json({ id: listing.id });
+  try {
+    const listing = await PublicListing.create(newListing, { transaction: t });
+
+    const imageObjects = images.map((imageUrl) => {
+      return {
+        listingId: listing.id,
+        imageUrl,
+      };
+    });
+    await Image.bulkCreate(imageObjects, { transaction: t });
+
+    const spotObjects = spots.map((spot) => {
+      return {
+        listingId: listing.id,
+        availableSpots: spot.availableSpots,
+        rowName: spot.rowName,
+      };
+    });
+    console.log(spotObjects);
+    await Spot.bulkCreate(spotObjects, { transaction: t });
+    await t.commit();
+    res.status(StatusCodes.CREATED).json({ id: listing.id });
+  } catch (error) {
+    console.log(error);
+    await t.rollback();
+    throw new BadRequest("Something went wrong while executing transaction");
+  }
 };
 
 module.exports = {
