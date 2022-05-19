@@ -7,7 +7,15 @@ const Image = db.images;
 const Spot = db.spots;
 
 const getAllListings = async (req, res) => {
-  const listings = await PublicListing.findAll({});
+  const listings = await PublicListing.findAll({
+    where: { status: "active" },
+    include: [
+      {
+        model: Image,
+        as: "images",
+      },
+    ],
+  });
   res.status(StatusCodes.OK).json(listings);
 };
 
@@ -77,7 +85,33 @@ const createPublicListing = async (req, res) => {
   }
 };
 
+const getListingDetails = async (req, res) => {
+  const { id } = req.params;
+  const listing = await PublicListing.findOne({
+    where: { id: id },
+    include: [
+      {
+        model: Image,
+        as: "images",
+        attributes: ["imageUrl"],
+      },
+      {
+        model: Spot,
+        as: "spots",
+      },
+    ],
+  });
+  listing.setDataValue(
+    "imageUrls",
+    listing.images.map((imageObject) => {
+      return imageObject.imageUrl;
+    })
+  );
+  res.status(StatusCodes.OK).json(listing);
+};
+
 module.exports = {
   getAllListings,
   createPublicListing,
+  getListingDetails,
 };
