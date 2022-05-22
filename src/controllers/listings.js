@@ -16,6 +16,14 @@ const getAllListings = async (req, res) => {
       },
     ],
   });
+  listings.forEach((listing) => {
+    listing.setDataValue(
+      "imageUrls",
+      listing.images.map((imageObject) => {
+        return imageObject.imageUrl;
+      })
+    );
+  });
   res.status(StatusCodes.OK).json(listings);
 };
 
