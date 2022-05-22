@@ -12,6 +12,10 @@ module.exports = {
       ownerId: {
         type: Sequelize.INTEGER(11),
         allowNull: false,
+        references: {
+          model: "users",
+          key: "id",
+        },
       },
       name: {
         type: Sequelize.STRING(255),
@@ -22,7 +26,7 @@ module.exports = {
         allowNull: false,
       },
       detailedDescription: {
-        type: Sequelize.STRING(255),
+        type: Sequelize.STRING(300),
         allowNull: false,
       },
       type: {
@@ -32,6 +36,7 @@ module.exports = {
       status: {
         type: Sequelize.STRING(45),
         allowNull: false,
+        defaultValue: "pending",
       },
       parentId: {
         type: Sequelize.INTEGER(11),

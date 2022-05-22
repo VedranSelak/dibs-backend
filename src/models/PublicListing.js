@@ -19,7 +19,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
     },
     detailedDescription: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(300),
       allowNull: false,
     },
     type: {
@@ -29,6 +29,7 @@ module.exports = (sequelize, DataTypes) => {
     status: {
       type: DataTypes.STRING(45),
       allowNull: false,
+      defaultValue: "pending",
     },
     parentId: {
       type: DataTypes.INTEGER(11),

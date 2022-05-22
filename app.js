@@ -11,6 +11,7 @@ const xss = require("xss-clean");
 
 const usersRouter = require("./src/routes/users");
 const authRouter = require("./src/routes/auth");
+const listingRouter = require("./src/routes/listings");
 
 const app = express();
 const ip = require("ip");
@@ -28,6 +29,7 @@ app.use(xss());
 
 app.use("/api/v1", authRouter);
 app.use("/api/v1/users", authorizationMiddleware, usersRouter);
+app.use("/api/v1/listings", listingRouter);
 
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
