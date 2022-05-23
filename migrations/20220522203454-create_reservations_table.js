@@ -25,16 +25,24 @@ module.exports = {
           key: "id",
         },
       },
+      spotId: {
+        type: Sequelize.INTEGER(11),
+        allowNull: false,
+        references: {
+          model: "spots",
+          key: "id",
+        },
+      },
       isPrivate: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
       },
       arrivalTimestamp: {
-        type: Sequelize.INTEGER(11),
+        type: Sequelize.BIGINT(20),
         allowNull: false,
       },
       stayApprox: {
-        type: Sequelize.INTEGER(11),
+        type: Sequelize.BIGINT(20),
         allowNull: false,
       },
       numOfParticipants: {
@@ -42,6 +50,7 @@ module.exports = {
         allowNull: false,
       },
       createdAt: Sequelize.DATE,
+      updatedAt: Sequelize.DATE,
     });
   },
 

@@ -5,6 +5,9 @@ const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
   host: dbConfig.HOST,
   dialect: dbConfig.dialect,
   operatorsAliases: false,
+  dialectOptions: {
+    supportBigNumbers: true,
+  },
 
   pool: {
     max: dbConfig.pool.max,
@@ -30,6 +33,7 @@ db.users = require("../models/User")(sequelize, DataTypes);
 db.publicListings = require("../models/PublicListing")(sequelize, DataTypes);
 db.images = require("../models/Image")(sequelize, DataTypes);
 db.spots = require("../models/Spot")(sequelize, DataTypes);
+db.reservations = require("../models/Reservation")(sequelize, DataTypes);
 
 db.users.hasOne(db.publicListings, {
   as: "public_listings",
@@ -52,6 +56,14 @@ db.publicListings.hasMany(db.spots, {
   foreignKey: "listingId",
 });
 db.spots.belongsTo(db.publicListings, {
+  as: "public_listing",
+  foreignKey: "listingId",
+});
+db.publicListings.hasMany(db.reservations, {
+  as: "reservations",
+  foreignKey: "listingId",
+});
+db.reservations.belongsTo(db.publicListings, {
   as: "public_listing",
   foreignKey: "listingId",
 });

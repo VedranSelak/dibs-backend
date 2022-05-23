@@ -16,16 +16,20 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER(11),
         allowNull: false,
       },
+      spotId: {
+        type: DataTypes.INTEGER(11),
+        allowNull: false,
+      },
       isPrivate: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
       },
       arrivalTimestamp: {
-        type: DataTypes.INTEGER(11),
+        type: DataTypes.BIGINT(20),
         allowNull: false,
       },
       stayApprox: {
-        type: DataTypes.INTEGER(11),
+        type: DataTypes.BIGINT(20),
         allowNull: false,
       },
       numOfParticipants: {
