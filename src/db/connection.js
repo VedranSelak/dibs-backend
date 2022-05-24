@@ -64,7 +64,7 @@ db.publicListings.hasMany(db.reservations, {
   foreignKey: "listingId",
 });
 db.reservations.belongsTo(db.publicListings, {
-  as: "public_listing",
+  as: "publicListing",
   foreignKey: "listingId",
 });
 

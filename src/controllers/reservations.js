@@ -1,11 +1,12 @@
 const { StatusCodes } = require("http-status-codes");
 const db = require("../db/connection");
 const { Op } = require("sequelize");
-const { Unauthenticated, BadRequest } = require("../errors");
+const { BadRequest } = require("../errors");
 
 const PublicListing = db.publicListings;
 const Reservation = db.reservations;
 const Spot = db.spots;
+const Image = db.images;
 
 const createReservation = async (req, res) => {
   const {
@@ -143,6 +144,68 @@ const createReservation = async (req, res) => {
   res.status(StatusCodes.CREATED).json({ id: reservation.id });
 };
 
+const getUpcomingReservations = async (req, res) => {
+  const reservations = await Reservation.findAll({
+    where: {
+      arrivalTimestamp: {
+        [Op.gt]: Date.now(),
+      },
+    },
+    include: {
+      model: PublicListing,
+      as: "publicListing",
+      include: {
+        model: Image,
+        as: "images",
+      },
+    },
+    order: [["arrivalTimestamp", "asc"]],
+  });
+  reservations.forEach((reservation) => {
+    reservation.publicListing.setDataValue(
+      "imageUrls",
+      reservation.publicListing.images.map((imageObject) => {
+        return imageObject.imageUrl;
+      })
+    );
+  });
+
+  res.status(StatusCodes.OK).json(reservations);
+};
+
+const getRecentReservations = async (req, res) => {
+  const millisecondsInMonth = 2629800000;
+  const reservations = await Reservation.findAll({
+    where: {
+      arrivalTimestamp: {
+        [Op.gt]: Date.now() - millisecondsInMonth,
+        [Op.lt]: Date.now(),
+      },
+    },
+    include: {
+      model: PublicListing,
+      as: "publicListing",
+      include: {
+        model: Image,
+        as: "images",
+      },
+    },
+    order: [["arrivalTimestamp", "desc"]],
+  });
+  reservations.forEach((reservation) => {
+    reservation.publicListing.setDataValue(
+      "imageUrls",
+      reservation.publicListing.images.map((imageObject) => {
+        return imageObject.imageUrl;
+      })
+    );
+  });
+
+  res.status(StatusCodes.OK).json(reservations);
+};
+
 module.exports = {
   createReservation,
+  getUpcomingReservations,
+  getRecentReservations,
 };
