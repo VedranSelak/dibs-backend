@@ -35,6 +35,7 @@ db.images = require("../models/Image")(sequelize, DataTypes);
 db.spots = require("../models/Spot")(sequelize, DataTypes);
 db.reservations = require("../models/Reservation")(sequelize, DataTypes);
 db.rooms = require("../models/Room")(sequelize, DataTypes);
+db.invites = require("../models/Invite")(sequelize, DataTypes);
 
 db.users.hasOne(db.publicListings, {
   as: "public_listings",
