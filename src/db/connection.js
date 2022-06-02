@@ -34,6 +34,8 @@ db.publicListings = require("../models/PublicListing")(sequelize, DataTypes);
 db.images = require("../models/Image")(sequelize, DataTypes);
 db.spots = require("../models/Spot")(sequelize, DataTypes);
 db.reservations = require("../models/Reservation")(sequelize, DataTypes);
+db.rooms = require("../models/Room")(sequelize, DataTypes);
+db.invites = require("../models/Invite")(sequelize, DataTypes);
 
 db.users.hasOne(db.publicListings, {
   as: "public_listings",
@@ -66,6 +68,14 @@ db.publicListings.hasMany(db.reservations, {
 db.reservations.belongsTo(db.publicListings, {
   as: "publicListing",
   foreignKey: "listingId",
+});
+db.users.hasMany(db.rooms, {
+  as: "rooms",
+  foreignKey: "ownerId",
+});
+db.rooms.belongsTo(db.users, {
+  as: "owner",
+  foreignKey: "ownerId",
 });
 
 db.sequelize.sync({ force: false }).then(() => {

@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
-const { searchUsers } = require("../controllers/users");
+const { createRoom } = require("../controllers/rooms");
 
-router.get("/:search", searchUsers);
+router.post("/", createRoom);
 
 module.exports = router;

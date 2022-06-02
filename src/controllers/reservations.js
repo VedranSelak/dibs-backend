@@ -147,6 +147,7 @@ const createReservation = async (req, res) => {
 const getUpcomingReservations = async (req, res) => {
   const reservations = await Reservation.findAll({
     where: {
+      userId: req.user.id,
       arrivalTimestamp: {
         [Op.gt]: Date.now(),
       },
@@ -177,6 +178,7 @@ const getRecentReservations = async (req, res) => {
   const millisecondsInMonth = 2629800000;
   const reservations = await Reservation.findAll({
     where: {
+      userId: req.user.id,
       arrivalTimestamp: {
         [Op.gt]: Date.now() - millisecondsInMonth,
         [Op.lt]: Date.now(),
