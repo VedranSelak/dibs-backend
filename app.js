@@ -14,6 +14,7 @@ const authRouter = require("./src/routes/auth");
 const listingRouter = require("./src/routes/listings");
 const reservationRouter = require("./src/routes/reservations");
 const roomRouter = require("./src/routes/rooms");
+const inviteRouter = require("./src/routes/invites");
 
 const app = express();
 const ip = require("ip");
@@ -34,6 +35,7 @@ app.use("/api/v1/users", authorizationMiddleware, usersRouter);
 app.use("/api/v1/listings", listingRouter);
 app.use("/api/v1/reservations", reservationRouter);
 app.use("/api/v1/rooms", authorizationMiddleware, roomRouter);
+app.use("/api/v1/invites", authorizationMiddleware, inviteRouter);
 
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
