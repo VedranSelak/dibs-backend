@@ -1,9 +1,11 @@
 const db = require("../db/connection");
 const { BadRequest } = require("../errors");
+const { Op } = require("sequelize");
 
 const Room = db.rooms;
 const Invite = db.invites;
 const User = db.users;
+const Reservation = db.reservations;
 
 const createRoom = async (req, res) => {
   const { id } = req.user;
@@ -116,10 +118,63 @@ const getRoomDetails = async (req, res) => {
   res.status(200).json(room);
 };
 
+const getYourRoom = async (req, res) => {
+  const { id } = req.params;
+  const { id: userId } = req.user;
+  const millisecondsInMonth = 2629800000;
+
+  const room = await Room.findOne({
+    where: {
+      id: id,
+      ownerId: userId,
+    },
+    include: {
+      model: Reservation,
+      as: "reservations",
+      seperate: true,
+      where: {
+        arrivalTimestamp: {
+          [Op.gt]: Date.now(),
+        },
+      },
+      order: [["arrivalTimestamp", "asc"]],
+      limit: 5,
+      include: {
+        model: User,
+        as: "user",
+        attributes: ["firstName", "lastName"],
+      },
+    },
+  }).then(async (data) => {
+    const recent = await Reservation.findAll({
+      where: {
+        isPrivate: true,
+        roomId: id,
+        arrivalTimestamp: {
+          [Op.gt]: Date.now() - millisecondsInMonth,
+          [Op.lt]: Date.now(),
+        },
+      },
+      order: [["arrivalTimestamp", "desc"]],
+      limit: 5,
+      include: {
+        model: User,
+        as: "user",
+        attributes: ["firstName", "lastName"],
+      },
+    });
+    data.setDataValue("recent", recent);
+    return data;
+  });
+
+  res.status(200).json(room);
+};
+
 module.exports = {
   createRoom,
   getRooms,
   getYourRooms,
   leaveRoom,
   getRoomDetails,
+  getYourRoom,
 };

@@ -2,6 +2,7 @@ const { StatusCodes } = require("http-status-codes");
 const db = require("../db/connection");
 const { Op } = require("sequelize");
 const { BadRequest } = require("../errors");
+const { Sequelize, sequelize } = require("../db/connection");
 
 const PublicListing = db.publicListings;
 const Reservation = db.reservations;
@@ -163,17 +164,66 @@ const getUpcomingReservations = async (req, res) => {
       },
     },
     order: [["arrivalTimestamp", "asc"]],
+    attributes: [
+      "id",
+      "roomId",
+      "listingId",
+      "spotId",
+      "isPrivate",
+      "arrivalTimestamp",
+      "stayApprox",
+      "numOfParticipants",
+    ],
+  }).then((data) => {
+    data.forEach((reservation) => {
+      reservation.setDataValue("place", reservation.publicListing);
+    });
+    return data;
   });
+
+  const roomReservations = await Reservation.findAll({
+    where: {
+      userId: req.user.id,
+      isPrivate: true,
+      arrivalTimestamp: {
+        [Op.gt]: Date.now(),
+      },
+    },
+    attributes: [
+      "id",
+      "roomId",
+      "listingId",
+      "spotId",
+      "isPrivate",
+      "arrivalTimestamp",
+      "stayApprox",
+      "numOfParticipants",
+    ],
+    include: {
+      model: Room,
+      as: "room",
+    },
+    order: [["arrivalTimestamp", "asc"]],
+  }).then((data) => {
+    data.forEach((reservation) => {
+      reservation.setDataValue("place", reservation.room);
+    });
+    return data;
+  });
+
   reservations.forEach((reservation) => {
     reservation.publicListing.setDataValue(
-      "imageUrls",
-      reservation.publicListing.images.map((imageObject) => {
-        return imageObject.imageUrl;
-      })
+      "imageUrl",
+      reservation.publicListing.images[0].imageUrl
     );
   });
 
-  res.status(StatusCodes.OK).json(reservations);
+  const result = [...reservations, ...roomReservations];
+  result.sort((a, b) => {
+    return a.arrivalTimestamp - b.arrivalTimestamp;
+  });
+
+  res.status(StatusCodes.OK).json(result);
 };
 
 const getRecentReservations = async (req, res) => {
@@ -195,18 +245,68 @@ const getRecentReservations = async (req, res) => {
         as: "images",
       },
     },
+    attributes: [
+      "id",
+      "roomId",
+      "listingId",
+      "spotId",
+      "isPrivate",
+      "arrivalTimestamp",
+      "stayApprox",
+      "numOfParticipants",
+    ],
     order: [["arrivalTimestamp", "desc"]],
+  }).then((data) => {
+    data.forEach((reservation) => {
+      reservation.setDataValue("place", reservation.publicListing);
+    });
+    return data;
   });
+
+  const roomReservations = await Reservation.findAll({
+    where: {
+      userId: req.user.id,
+      isPrivate: true,
+      arrivalTimestamp: {
+        [Op.gt]: Date.now() - millisecondsInMonth,
+        [Op.lt]: Date.now(),
+      },
+    },
+    include: {
+      model: Room,
+      as: "room",
+    },
+    attributes: [
+      "id",
+      "roomId",
+      "listingId",
+      "spotId",
+      "isPrivate",
+      "arrivalTimestamp",
+      "stayApprox",
+      "numOfParticipants",
+    ],
+    order: [["arrivalTimestamp", "desc"]],
+  }).then((data) => {
+    data.forEach((reservation) => {
+      reservation.setDataValue("place", reservation.room);
+    });
+    return data;
+  });
+
   reservations.forEach((reservation) => {
     reservation.publicListing.setDataValue(
-      "imageUrls",
-      reservation.publicListing.images.map((imageObject) => {
-        return imageObject.imageUrl;
-      })
+      "imageUrl",
+      reservation.publicListing.images[0].imageUrl
     );
   });
 
-  res.status(StatusCodes.OK).json(reservations);
+  const result = [...reservations, ...roomReservations];
+  result.sort((a, b) => {
+    return b.arrivalTimestamp - a.arrivalTimestamp;
+  });
+
+  res.status(StatusCodes.OK).json(result);
 };
 
 const createRoomReservation = async (req, res) => {

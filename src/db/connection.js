@@ -101,6 +101,14 @@ db.reservations.belongsTo(db.rooms, {
   as: "room",
   foreignKey: "roomId",
 });
+db.users.hasMany(db.reservations, {
+  as: "reservations",
+  foreignKey: "userId",
+});
+db.reservations.belongsTo(db.users, {
+  as: "user",
+  foreignKey: "userId",
+});
 
 db.sequelize.sync({ force: false }).then(() => {
   console.log("Re-sync done!");
