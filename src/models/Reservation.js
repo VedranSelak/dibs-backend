@@ -14,11 +14,12 @@ module.exports = (sequelize, DataTypes) => {
       },
       listingId: {
         type: DataTypes.INTEGER(11),
-        allowNull: false,
+      },
+      roomId: {
+        type: DataTypes.INTEGER(11),
       },
       spotId: {
         type: DataTypes.INTEGER(11),
-        allowNull: false,
       },
       isPrivate: {
         type: DataTypes.BOOLEAN,
@@ -35,6 +36,11 @@ module.exports = (sequelize, DataTypes) => {
       numOfParticipants: {
         type: DataTypes.INTEGER(11),
         allowNull: false,
+      },
+      inHistory: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
       },
     },
     {

@@ -99,9 +99,27 @@ const leaveRoom = async (req, res) => {
   res.status(200).json({ id: parseInt(id) });
 };
 
+const getRoomDetails = async (req, res) => {
+  const { id } = req.params;
+
+  const room = await Room.findOne({
+    where: {
+      id: id,
+    },
+    include: {
+      model: User,
+      as: "owner",
+      attributes: ["firstName", "lastName"],
+    },
+  });
+
+  res.status(200).json(room);
+};
+
 module.exports = {
   createRoom,
   getRooms,
   getYourRooms,
   leaveRoom,
+  getRoomDetails,
 };
