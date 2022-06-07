@@ -1,14 +1,16 @@
 const { StatusCodes } = require("http-status-codes");
 const db = require("../db/connection");
 const { Op } = require("sequelize");
-const { BadRequest } = require("../errors");
+const { BadRequest, Unauthenticated } = require("../errors");
 const { Sequelize, sequelize } = require("../db/connection");
+const Forbidden = require("../errors/forbidden");
 
 const PublicListing = db.publicListings;
 const Reservation = db.reservations;
 const Spot = db.spots;
 const Image = db.images;
 const Room = db.rooms;
+const User = db.users;
 
 const createReservation = async (req, res) => {
   const {
@@ -391,9 +393,99 @@ const createRoomReservation = async (req, res) => {
   res.status(StatusCodes.CREATED).json({ id: reservation.id });
 };
 
+const getRecentListingReservations = async (req, res) => {
+  const millisecondsInMonth = 2629800000;
+  const { id, type } = req.user;
+
+  if (type !== "owner") {
+    throw new Forbidden("You are no allowed to access this route");
+  }
+
+  const listing = await PublicListing.findOne({
+    where: {
+      ownerId: id,
+    },
+    attributes: ["id"],
+  });
+
+  if (!listing.id) {
+    throw new BadRequest("Please create a listing first");
+  }
+
+  const reservations = await Reservation.findAll({
+    where: {
+      listingId: listing.id,
+      arrivalTimestamp: {
+        [Op.gt]: Date.now() - millisecondsInMonth,
+        [Op.lt]: Date.now(),
+      },
+    },
+    include: {
+      model: User,
+      as: "user",
+      attributes: ["id", "firstName", "lastName"],
+    },
+    attributes: [
+      "id",
+      "spotId",
+      "arrivalTimestamp",
+      "stayApprox",
+      "numOfParticipants",
+    ],
+    order: [["arrivalTimestamp", "desc"]],
+  });
+
+  res.status(StatusCodes.OK).json(reservations);
+};
+
+const getUpcomingListingReservations = async (req, res) => {
+  const { id, type } = req.user;
+
+  if (type !== "owner") {
+    throw new Forbidden("You are no allowed to access this route");
+  }
+
+  const listing = await PublicListing.findOne({
+    where: {
+      ownerId: id,
+    },
+    attributes: ["id"],
+  });
+
+  if (!listing.id) {
+    throw new BadRequest("Please create a listing first");
+  }
+
+  const reservations = await Reservation.findAll({
+    where: {
+      listingId: listing.id,
+      arrivalTimestamp: {
+        [Op.gt]: Date.now(),
+      },
+    },
+    include: {
+      model: User,
+      as: "user",
+      attributes: ["id", "firstName", "lastName"],
+    },
+    attributes: [
+      "id",
+      "spotId",
+      "arrivalTimestamp",
+      "stayApprox",
+      "numOfParticipants",
+    ],
+    order: [["arrivalTimestamp", "asc"]],
+  });
+
+  res.status(StatusCodes.OK).json(reservations);
+};
+
 module.exports = {
   createReservation,
   getUpcomingReservations,
   getRecentReservations,
   createRoomReservation,
+  getRecentListingReservations,
+  getUpcomingListingReservations,
 };
