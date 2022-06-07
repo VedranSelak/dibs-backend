@@ -138,7 +138,7 @@ const getYourRoom = async (req, res) => {
         },
       },
       order: [["arrivalTimestamp", "asc"]],
-      limit: 5,
+      limit: 1000,
       include: {
         model: User,
         as: "user",
@@ -156,7 +156,7 @@ const getYourRoom = async (req, res) => {
         },
       },
       order: [["arrivalTimestamp", "desc"]],
-      limit: 5,
+      limit: 1000,
       include: {
         model: User,
         as: "user",
