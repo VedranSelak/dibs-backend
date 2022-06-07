@@ -34,6 +34,9 @@ module.exports = {
         type: Sequelize.STRING(45),
         allowNull: false,
       },
+      imageUrl: {
+        type: Sequelize.STRING(255),
+      },
       createdAt: Sequelize.DATE,
       updatedAt: Sequelize.DATE,
     });

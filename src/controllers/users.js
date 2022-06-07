@@ -17,6 +17,20 @@ const searchUsers = async (req, res) => {
   res.status(200).json(users);
 };
 
+const getAccountDetails = async (req, res) => {
+  const { id } = req.user;
+
+  const user = await User.findOne({
+    where: {
+      id: id,
+    },
+    attributes: ["id", "firstName", "lastName", "imageUrl"],
+  });
+
+  res.status(200).json(user);
+};
+
 module.exports = {
   searchUsers,
+  getAccountDetails,
 };
