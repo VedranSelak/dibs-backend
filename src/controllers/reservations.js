@@ -2,11 +2,13 @@ const { StatusCodes } = require("http-status-codes");
 const db = require("../db/connection");
 const { Op } = require("sequelize");
 const { BadRequest } = require("../errors");
+const { Sequelize, sequelize } = require("../db/connection");
 
 const PublicListing = db.publicListings;
 const Reservation = db.reservations;
 const Spot = db.spots;
 const Image = db.images;
+const Room = db.rooms;
 
 const createReservation = async (req, res) => {
   const {
@@ -148,6 +150,7 @@ const getUpcomingReservations = async (req, res) => {
   const reservations = await Reservation.findAll({
     where: {
       userId: req.user.id,
+      isPrivate: false,
       arrivalTimestamp: {
         [Op.gt]: Date.now(),
       },
@@ -161,17 +164,66 @@ const getUpcomingReservations = async (req, res) => {
       },
     },
     order: [["arrivalTimestamp", "asc"]],
+    attributes: [
+      "id",
+      "roomId",
+      "listingId",
+      "spotId",
+      "isPrivate",
+      "arrivalTimestamp",
+      "stayApprox",
+      "numOfParticipants",
+    ],
+  }).then((data) => {
+    data.forEach((reservation) => {
+      reservation.setDataValue("place", reservation.publicListing);
+    });
+    return data;
   });
+
+  const roomReservations = await Reservation.findAll({
+    where: {
+      userId: req.user.id,
+      isPrivate: true,
+      arrivalTimestamp: {
+        [Op.gt]: Date.now(),
+      },
+    },
+    attributes: [
+      "id",
+      "roomId",
+      "listingId",
+      "spotId",
+      "isPrivate",
+      "arrivalTimestamp",
+      "stayApprox",
+      "numOfParticipants",
+    ],
+    include: {
+      model: Room,
+      as: "room",
+    },
+    order: [["arrivalTimestamp", "asc"]],
+  }).then((data) => {
+    data.forEach((reservation) => {
+      reservation.setDataValue("place", reservation.room);
+    });
+    return data;
+  });
+
   reservations.forEach((reservation) => {
     reservation.publicListing.setDataValue(
-      "imageUrls",
-      reservation.publicListing.images.map((imageObject) => {
-        return imageObject.imageUrl;
-      })
+      "imageUrl",
+      reservation.publicListing.images[0].imageUrl
     );
   });
 
-  res.status(StatusCodes.OK).json(reservations);
+  const result = [...reservations, ...roomReservations];
+  result.sort((a, b) => {
+    return a.arrivalTimestamp - b.arrivalTimestamp;
+  });
+
+  res.status(StatusCodes.OK).json(result);
 };
 
 const getRecentReservations = async (req, res) => {
@@ -179,6 +231,7 @@ const getRecentReservations = async (req, res) => {
   const reservations = await Reservation.findAll({
     where: {
       userId: req.user.id,
+      isPrivate: false,
       arrivalTimestamp: {
         [Op.gt]: Date.now() - millisecondsInMonth,
         [Op.lt]: Date.now(),
@@ -192,22 +245,155 @@ const getRecentReservations = async (req, res) => {
         as: "images",
       },
     },
+    attributes: [
+      "id",
+      "roomId",
+      "listingId",
+      "spotId",
+      "isPrivate",
+      "arrivalTimestamp",
+      "stayApprox",
+      "numOfParticipants",
+    ],
     order: [["arrivalTimestamp", "desc"]],
+  }).then((data) => {
+    data.forEach((reservation) => {
+      reservation.setDataValue("place", reservation.publicListing);
+    });
+    return data;
   });
+
+  const roomReservations = await Reservation.findAll({
+    where: {
+      userId: req.user.id,
+      isPrivate: true,
+      arrivalTimestamp: {
+        [Op.gt]: Date.now() - millisecondsInMonth,
+        [Op.lt]: Date.now(),
+      },
+    },
+    include: {
+      model: Room,
+      as: "room",
+    },
+    attributes: [
+      "id",
+      "roomId",
+      "listingId",
+      "spotId",
+      "isPrivate",
+      "arrivalTimestamp",
+      "stayApprox",
+      "numOfParticipants",
+    ],
+    order: [["arrivalTimestamp", "desc"]],
+  }).then((data) => {
+    data.forEach((reservation) => {
+      reservation.setDataValue("place", reservation.room);
+    });
+    return data;
+  });
+
   reservations.forEach((reservation) => {
     reservation.publicListing.setDataValue(
-      "imageUrls",
-      reservation.publicListing.images.map((imageObject) => {
-        return imageObject.imageUrl;
-      })
+      "imageUrl",
+      reservation.publicListing.images[0].imageUrl
     );
   });
 
-  res.status(StatusCodes.OK).json(reservations);
+  const result = [...reservations, ...roomReservations];
+  result.sort((a, b) => {
+    return b.arrivalTimestamp - a.arrivalTimestamp;
+  });
+
+  res.status(StatusCodes.OK).json(result);
+};
+
+const createRoomReservation = async (req, res) => {
+  const { roomId, arrivalTime, stayApprox } = req.body;
+
+  const { id } = req.user;
+
+  if (!roomId || !arrivalTime || !stayApprox) {
+    throw new BadRequest("Please provide all the required fields");
+  }
+  const room = await Room.findOne({
+    where: { id: roomId },
+    include: [
+      {
+        model: Reservation,
+        as: "reservations",
+        separate: true,
+        where: {
+          [Op.or]: [
+            {
+              arrivalTimestamp: {
+                [Op.gte]: arrivalTime,
+                [Op.lt]: stayApprox,
+              },
+            },
+            {
+              stayApprox: {
+                [Op.gt]: arrivalTime,
+                [Op.lte]: stayApprox,
+              },
+            },
+            {
+              [Op.and]: [
+                {
+                  arrivalTimestamp: {
+                    [Op.lte]: arrivalTime,
+                  },
+                },
+                {
+                  stayApprox: {
+                    [Op.gte]: stayApprox,
+                  },
+                },
+              ],
+            },
+            {
+              [Op.and]: [
+                {
+                  arrivalTimestamp: {
+                    [Op.gte]: arrivalTime,
+                  },
+                },
+                {
+                  stayApprox: {
+                    [Op.lte]: stayApprox,
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  if (room.reservations.length == room.capacity) {
+    throw new BadRequest(
+      "There is no more available spots in your time slot",
+      400
+    );
+  }
+
+  const reservation = await Reservation.create({
+    userId: id,
+    roomId: roomId,
+    isPrivate: true,
+    arrivalTimestamp: arrivalTime,
+    stayApprox: stayApprox,
+    numOfParticipants: 1,
+  });
+
+  res.status(StatusCodes.CREATED).json({ id: reservation.id });
 };
 
 module.exports = {
   createReservation,
   getUpcomingReservations,
   getRecentReservations,
+  createRoomReservation,
 };

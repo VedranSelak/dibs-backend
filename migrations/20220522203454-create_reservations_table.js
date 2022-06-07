@@ -19,15 +19,20 @@ module.exports = {
       },
       listingId: {
         type: Sequelize.INTEGER(11),
-        allowNull: false,
         references: {
           model: "public_listings",
           key: "id",
         },
       },
+      roomId: {
+        type: Sequelize.INTEGER(11),
+        references: {
+          model: "rooms",
+          key: "id",
+        },
+      },
       spotId: {
         type: Sequelize.INTEGER(11),
-        allowNull: false,
         references: {
           model: "spots",
           key: "id",
@@ -48,6 +53,11 @@ module.exports = {
       numOfParticipants: {
         type: Sequelize.INTEGER(11),
         allowNull: false,
+      },
+      inHistory: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
       },
       createdAt: Sequelize.DATE,
       updatedAt: Sequelize.DATE,
