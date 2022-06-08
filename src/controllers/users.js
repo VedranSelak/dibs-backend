@@ -1,5 +1,6 @@
 const db = require("../db/connection");
 const { Op } = require("sequelize");
+const { StatusCodes } = require("http-status-codes");
 
 const User = db.users;
 
@@ -30,7 +31,26 @@ const getAccountDetails = async (req, res) => {
   res.status(200).json(user);
 };
 
+const patchUserDetails = async (req, res) => {
+  const { id } = req.user;
+  const { imageUrl } = req.body;
+
+  await User.update(
+    {
+      imageUrl: imageUrl,
+    },
+    {
+      where: {
+        id: id,
+      },
+    }
+  );
+
+  res.status(StatusCodes.CREATED).json({ id: id });
+};
+
 module.exports = {
   searchUsers,
   getAccountDetails,
+  patchUserDetails,
 };
