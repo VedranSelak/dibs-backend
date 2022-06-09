@@ -111,7 +111,7 @@ const getRoomDetails = async (req, res) => {
     include: {
       model: User,
       as: "owner",
-      attributes: ["firstName", "lastName"],
+      attributes: ["firstName", "lastName", "imageUrl"],
     },
   });
 
@@ -142,7 +142,7 @@ const getYourRoom = async (req, res) => {
       include: {
         model: User,
         as: "user",
-        attributes: ["firstName", "lastName"],
+        attributes: ["firstName", "lastName", "imageUrl"],
       },
     },
   }).then(async (data) => {
@@ -160,7 +160,7 @@ const getYourRoom = async (req, res) => {
       include: {
         model: User,
         as: "user",
-        attributes: ["firstName", "lastName"],
+        attributes: ["firstName", "lastName", "imageUrl"],
       },
     });
     data.setDataValue("recent", recent);

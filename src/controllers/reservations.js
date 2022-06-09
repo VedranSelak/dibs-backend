@@ -234,6 +234,7 @@ const getRecentReservations = async (req, res) => {
     where: {
       userId: req.user.id,
       isPrivate: false,
+      inHistory: true,
       arrivalTimestamp: {
         [Op.gt]: Date.now() - millisecondsInMonth,
         [Op.lt]: Date.now(),
@@ -269,6 +270,7 @@ const getRecentReservations = async (req, res) => {
     where: {
       userId: req.user.id,
       isPrivate: true,
+      inHistory: true,
       arrivalTimestamp: {
         [Op.gt]: Date.now() - millisecondsInMonth,
         [Op.lt]: Date.now(),
@@ -423,7 +425,7 @@ const getRecentListingReservations = async (req, res) => {
     include: {
       model: User,
       as: "user",
-      attributes: ["id", "firstName", "lastName"],
+      attributes: ["id", "firstName", "lastName", "imageUrl"],
     },
     attributes: [
       "id",
@@ -466,7 +468,7 @@ const getUpcomingListingReservations = async (req, res) => {
     include: {
       model: User,
       as: "user",
-      attributes: ["id", "firstName", "lastName"],
+      attributes: ["id", "firstName", "lastName", "imageUrl"],
     },
     attributes: [
       "id",
@@ -481,6 +483,53 @@ const getUpcomingListingReservations = async (req, res) => {
   res.status(StatusCodes.OK).json(reservations);
 };
 
+const cancelReservation = async (req, res) => {
+  const { id: userId } = req.user;
+  const { id } = req.params;
+
+  const reservation = await Reservation.findOne({
+    where: {
+      id: id,
+      userId: userId,
+    },
+  });
+
+  if (!reservation.id) {
+    throw new BadRequest("This reservation does not exit");
+  }
+
+  if (reservation.arrivalTimestamp - Date.now() < 3600000 * 3) {
+    throw new BadRequest("It is to late to cancel the reservation");
+  }
+
+  await Reservation.destroy({
+    where: {
+      id: id,
+    },
+  });
+
+  res.status(StatusCodes.CREATED).json({ id: reservation.id });
+};
+
+const removeFromHistory = async (req, res) => {
+  const { id: userId } = req.user;
+  const { id } = req.params;
+
+  await Reservation.update(
+    {
+      inHistory: false,
+    },
+    {
+      where: {
+        id: id,
+        userId: userId,
+      },
+    }
+  );
+
+  res.status(StatusCodes.CREATED).json({ id: parseInt(id) });
+};
+
 module.exports = {
   createReservation,
   getUpcomingReservations,
@@ -488,4 +537,6 @@ module.exports = {
   createRoomReservation,
   getRecentListingReservations,
   getUpcomingListingReservations,
+  cancelReservation,
+  removeFromHistory,
 };
