@@ -1,6 +1,8 @@
 const db = require("../db/connection");
 const { BadRequest } = require("../errors");
 const { Op } = require("sequelize");
+const { StatusCodes } = require("http-status-codes");
+const { sequelize } = require("../db/connection");
 
 const Room = db.rooms;
 const Invite = db.invites;
@@ -170,6 +172,49 @@ const getYourRoom = async (req, res) => {
   res.status(200).json(room);
 };
 
+const deleteRoom = async (req, res) => {
+  const { id: userId } = req.user;
+  const { id } = req.params;
+  const t = await sequelize.transaction();
+
+  try {
+    await Invite.destroy(
+      {
+        where: {
+          roomId: id,
+        },
+      },
+      { transaction: t }
+    );
+
+    await Reservation.destroy(
+      {
+        where: {
+          roomId: id,
+        },
+      },
+      { transaction: t }
+    );
+
+    await Room.destroy(
+      {
+        where: {
+          id: id,
+          ownerId: userId,
+        },
+      },
+      { transaction: t }
+    );
+
+    await t.commit();
+  } catch (error) {
+    t.rollback();
+    throw new BadRequest("Something went wrong when deleting");
+  }
+
+  res.status(StatusCodes.CREATED).json({ id: parseInt(id) });
+};
+
 module.exports = {
   createRoom,
   getRooms,
@@ -177,4 +222,5 @@ module.exports = {
   leaveRoom,
   getRoomDetails,
   getYourRoom,
+  deleteRoom,
 };
