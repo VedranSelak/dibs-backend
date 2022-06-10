@@ -1,5 +1,6 @@
 const { StatusCodes } = require("http-status-codes");
 const db = require("../db/connection");
+const { Op } = require("sequelize");
 const { Unauthenticated, BadRequest } = require("../errors");
 
 const PublicListing = db.publicListings;
@@ -9,6 +10,35 @@ const Spot = db.spots;
 const getAllListings = async (req, res) => {
   const listings = await PublicListing.findAll({
     where: { status: "active" },
+    include: [
+      {
+        model: Image,
+        as: "images",
+      },
+    ],
+  });
+  listings.forEach((listing) => {
+    listing.setDataValue(
+      "imageUrls",
+      listing.images.map((imageObject) => {
+        return imageObject.imageUrl;
+      })
+    );
+  });
+
+  res.status(StatusCodes.OK).json(listings);
+};
+
+const searchListings = async (req, res) => {
+  const { search } = req.params;
+
+  const listings = await PublicListing.findAll({
+    where: {
+      status: "active",
+      name: {
+        [Op.like]: "%" + search + "%",
+      },
+    },
     include: [
       {
         model: Image,
@@ -120,6 +150,7 @@ const getListingDetails = async (req, res) => {
 
 module.exports = {
   getAllListings,
+  searchListings,
   createPublicListing,
   getListingDetails,
 };
