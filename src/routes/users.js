@@ -1,8 +1,14 @@
 const express = require("express");
 const router = express.Router();
 
-const { searchUsers } = require("../controllers/users");
+const {
+  searchUsers,
+  getAccountDetails,
+  patchUserDetails,
+} = require("../controllers/users");
 
-router.get("/:search", searchUsers);
+router.get("/me", getAccountDetails);
+router.get("/search/:search", searchUsers);
+router.patch("/", patchUserDetails);
 
 module.exports = router;

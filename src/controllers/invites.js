@@ -25,7 +25,7 @@ const getInvites = async (req, res) => {
       {
         model: User,
         as: "owner",
-        attributes: ["firstName", "lastName"],
+        attributes: ["firstName", "lastName", "imageUrl"],
       },
     ],
     raw: true,
@@ -35,8 +35,11 @@ const getInvites = async (req, res) => {
       [Sequelize.col("invites.id"), "id"],
       [Sequelize.col("owner.firstName"), "firstName"],
       [Sequelize.col("owner.lastName"), "lastName"],
+      [Sequelize.col("owner.imageUrl"), "imageUrl"],
     ],
   });
+
+  console.log(invites);
 
   res.status(200).json(invites);
 };

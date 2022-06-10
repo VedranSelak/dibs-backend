@@ -9,6 +9,8 @@ const {
   createRoomReservation,
   getRecentListingReservations,
   getUpcomingListingReservations,
+  cancelReservation,
+  removeFromHistory,
 } = require("../controllers/reservations");
 
 router.post("/", authorizationMiddleware, createReservation);
@@ -25,5 +27,7 @@ router.get(
   authorizationMiddleware,
   getUpcomingListingReservations
 );
+router.delete("/cancel/:id", authorizationMiddleware, cancelReservation);
+router.patch("/remove/:id", authorizationMiddleware, removeFromHistory);
 
 module.exports = router;
