@@ -11,7 +11,7 @@ const searchUsers = async (req, res) => {
   const { search } = req.params;
 
   const users = await User.findAll({
-    attributes: ["id", "firstName", "lastName"],
+    attributes: ["id", "firstName", "lastName", "imageUrl"],
   }).then((users) => {
     return users.filter((user) =>
       user.fullName.toLowerCase().includes(search.toLowerCase())
