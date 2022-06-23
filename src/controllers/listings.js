@@ -8,23 +8,38 @@ const Image = db.images;
 const Spot = db.spots;
 
 const getAllListings = async (req, res) => {
+  const { filters, sort } = req.query;
+
+  const whereStatement = {};
+
+  if (filters && filters.length > 0) {
+    whereStatement.type = {
+      [Op.in]: Array.isArray(filters) ? filters : [filters],
+    };
+  }
+
   const listings = await PublicListing.findAll({
-    where: { status: "active" },
+    // where: { status: "active" },
+    where: whereStatement,
     include: [
       {
         model: Image,
         as: "images",
       },
     ],
+    order: [["createdAt", sort ? sort : "DESC"]],
   });
-  listings.forEach((listing) => {
-    listing.setDataValue(
-      "imageUrls",
-      listing.images.map((imageObject) => {
-        return imageObject.imageUrl;
-      })
-    );
-  });
+
+  if (listings && listings.length > 0) {
+    listings.forEach((listing) => {
+      listing.setDataValue(
+        "imageUrls",
+        listing.images.map((imageObject) => {
+          return imageObject.imageUrl;
+        })
+      );
+    });
+  }
 
   res.status(StatusCodes.OK).json(listings);
 };
@@ -34,7 +49,7 @@ const searchListings = async (req, res) => {
 
   const listings = await PublicListing.findAll({
     where: {
-      status: "active",
+      // status: "active",
       name: {
         [Op.like]: "%" + search + "%",
       },
