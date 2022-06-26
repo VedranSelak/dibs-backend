@@ -1,11 +1,10 @@
 const db = require("../db/connection");
-const { Op } = require("sequelize");
 const { StatusCodes } = require("http-status-codes");
-const { Sequelize } = require("../db/connection");
 
 const User = db.users;
 const Reservation = db.reservations;
 const Room = db.rooms;
+const PublicListing = db.publicListings;
 
 const searchUsers = async (req, res) => {
   const { search } = req.params;
@@ -67,8 +66,25 @@ const patchUserDetails = async (req, res) => {
   res.status(StatusCodes.CREATED).json({ id: id });
 };
 
+const getHasListing = async (req, res) => {
+  const { id } = req.user;
+
+  const listing = await PublicListing.findOne({
+    where: {
+      ownerId: id,
+    },
+  });
+
+  if (listing) {
+    res.status(StatusCodes.OK).json({ hasListing: true });
+  } else {
+    res.status(StatusCodes.OK).json({ hasListing: false });
+  }
+};
+
 module.exports = {
   searchUsers,
   getAccountDetails,
   patchUserDetails,
+  getHasListing,
 };
