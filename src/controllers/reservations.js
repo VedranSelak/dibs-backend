@@ -114,6 +114,24 @@ const createReservation = async (req, res) => {
         compatibileSpots.push(listing.spots[spotIndex]);
       }
     }
+  } else if (listing.type == "club") {
+    for (let spotIndex in listing.spots) {
+      if (
+        listing.spots[spotIndex].availableSpots - numberOfParticipants <= 2 &&
+        listing.spots[spotIndex].availableSpots - numberOfParticipants >= 0
+      ) {
+        compatibileSpots.push(listing.spots[spotIndex]);
+      }
+    }
+  } else if (listing.type == "bar") {
+    for (let spotIndex in listing.spots) {
+      if (
+        listing.spots[spotIndex].availableSpots - numberOfParticipants <= 2 &&
+        listing.spots[spotIndex].availableSpots - numberOfParticipants >= 0
+      ) {
+        compatibileSpots.push(listing.spots[spotIndex]);
+      }
+    }
   }
 
   if (compatibileSpots.length <= 0) {
