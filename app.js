@@ -43,9 +43,9 @@ app.use(errorHandlerMiddleware);
 // DB Connection
 require("./src/db/connection");
 
-// app.listen(3000, () => {
-//   console.log("Listening one port 3000");
-//   console.log("With IP: ", ip.address());
-// });
+app.listen(process.env.PORT || 3000, () => {
+  console.log("Listening one port 3000");
+  console.log("With IP: ", ip.address());
+});
 
 module.exports = app;
