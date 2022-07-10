@@ -21,10 +21,6 @@ module.exports = {
         type: Sequelize.INTEGER(11),
         allowNull: false,
       },
-      rowName: {
-        type: Sequelize.STRING(3),
-        allowNull: true,
-      },
     });
   },
 

@@ -33,11 +33,6 @@ module.exports = {
         type: Sequelize.STRING(45),
         allowNull: false,
       },
-      status: {
-        type: Sequelize.STRING(45),
-        allowNull: false,
-        defaultValue: "pending",
-      },
       parentId: {
         type: Sequelize.INTEGER(11),
       },

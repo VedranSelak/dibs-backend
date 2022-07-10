@@ -1,6 +1,7 @@
+const { StatusCodes } = require("http-status-codes");
 const { Sequelize } = require("../db/connection");
 const db = require("../db/connection");
-const { BadRequest } = require("../errors");
+const { BadRequest, Unauthenticated } = require("../errors");
 
 const Invite = db.invites;
 const Room = db.rooms;
@@ -69,7 +70,38 @@ const respondToInvite = async (req, res) => {
   res.status(200).json({ id: parseInt(id) });
 };
 
+const postInvites = async (req, res) => {
+  const { id: userId } = req.user;
+  const { invites } = req.body;
+  const { id } = req.params;
+  console.log(req.body);
+
+  if (typeof invites === "undefined" || invites === null) {
+    throw new BadRequest("Please provide the required data", 400);
+  }
+
+  const room = await Room.findOne({
+    where: {
+      ownerId: userId,
+    },
+  });
+
+  if (!room) {
+    throw new Unauthenticated("Not authorized for this room");
+  }
+
+  await Invite.bulkCreate(
+    invites.map((invite) => {
+      invite.ownerId = userId;
+      return invite;
+    })
+  );
+
+  res.status(StatusCodes.CREATED).json({ id: parseInt(id) });
+};
+
 module.exports = {
   getInvites,
   respondToInvite,
+  postInvites,
 };

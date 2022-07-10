@@ -16,10 +16,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER(11),
         allowNull: false,
       },
-      rowName: {
-        type: DataTypes.STRING(3),
-        allowNull: true,
-      },
     },
     {
       timestamps: false,
