@@ -33,9 +33,6 @@ module.exports = {
         type: Sequelize.STRING(45),
         allowNull: false,
       },
-      parentId: {
-        type: Sequelize.INTEGER(11),
-      },
       createdAt: Sequelize.DATE,
       updatedAt: Sequelize.DATE,
     });
