@@ -26,9 +26,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(45),
       allowNull: false,
     },
-    parentId: {
-      type: DataTypes.INTEGER(11),
-    },
   });
 
   return PublicListing;

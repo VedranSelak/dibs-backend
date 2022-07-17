@@ -17,7 +17,6 @@ const roomRouter = require("./src/routes/rooms");
 const inviteRouter = require("./src/routes/invites");
 
 const app = express();
-const ip = require("ip");
 
 const notFoundMiddleware = require("./src/middleware/notFound");
 const errorHandlerMiddleware = require("./src/middleware/errorHandler");
@@ -42,10 +41,5 @@ app.use(errorHandlerMiddleware);
 
 // DB Connection
 require("./src/db/connection");
-
-app.listen(process.env.PORT || 3000, () => {
-  console.log("Listening one port 3000");
-  console.log("With IP: ", ip.address());
-});
 
 module.exports = app;

@@ -8,9 +8,9 @@ const User = db.users;
 const PublicListing = db.publicListings;
 
 const signUp = async (req, res) => {
-  const { email, firstName, lastName, password, status, type } = req.body;
+  const { email, firstName, lastName, password, type } = req.body;
 
-  if (!email || !firstName || !lastName || !password || !status || !type) {
+  if (!email || !firstName || !lastName || !password || !type) {
     throw new BadRequest("Please provide all the required fields");
   }
 
@@ -22,7 +22,6 @@ const signUp = async (req, res) => {
     firstName: firstName,
     lastName: lastName,
     password: hashedPassword,
-    status: status,
     type: type,
   };
 

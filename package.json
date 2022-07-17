@@ -3,7 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "nodemon app.js"
+    "start": "nodemon index.js",
+    "dev": "env-cmd -f ./environment/dev.env nodemon index.js",
+    "test": "env-cmd -f ./environment/test.env jest --watch --runInBand"
+  },
+  "jest": {
+    "testEnvironment": "node"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -20,5 +25,10 @@
     "nodemon": "^2.0.19",
     "sequelize": "^6.19.0",
     "xss-clean": "^0.1.1"
+  },
+  "devDependencies": {
+    "env-cmd": "^10.1.0",
+    "jest": "^28.1.2",
+    "supertest": "^6.2.4"
   }
 }
